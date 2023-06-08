@@ -1,3 +1,4 @@
+import json
 from os import getenv
 from typing import Union
 
@@ -30,9 +31,7 @@ async def chat(body: ClaudeChatPrompt):
     await client.open_channel()
     await client.chat(body.prompt)
 
-    return {
-        "claude": await client.get_reply()
-    }
+    return await client.get_reply()
 
 # add --no-buffer to see the effect of streaming
 # curl -X 'POST'  --no-buffer \
@@ -53,11 +52,11 @@ async def chat(body: ClaudeChatPrompt):
 @app.post("/claude/reset", dependencies=[Depends(must_token)])
 async def chat():
     await client.open_channel()
-    await client.chat("请忘记上面的会话内容")
+    await client.chat("忘记上述对话")
 
-    return {
+    return json.dumps({
         "claude": await client.get_reply()
-    }
+    })
 
 
 if __name__ == '__main__':

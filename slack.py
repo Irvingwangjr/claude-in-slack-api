@@ -5,12 +5,16 @@ from dotenv import load_dotenv
 from slack_sdk.web.async_client import AsyncWebClient
 from slack_sdk.errors import SlackApiError
 
+import ssl
+import certifi
+
+ssl_context = ssl.create_default_context(cafile=certifi.where())
+
 load_dotenv()
 CLAUDE_BOT_ID = getenv("CLAUDE_BOT_ID")
 
 
 class SlackClient(AsyncWebClient):
-
     CHANNEL_ID = None
     LAST_TS = None
 
@@ -24,8 +28,15 @@ class SlackClient(AsyncWebClient):
 
     async def open_channel(self):
         if not self.CHANNEL_ID:
+            print(f"CLAUDE_BOT_ID ${CLAUDE_BOT_ID}")
             response = await self.conversations_open(users=CLAUDE_BOT_ID)
             self.CHANNEL_ID = response["channel"]["id"]
+
+    async def command(self, text):
+        if not self.CHANNEL_ID:
+            raise Exception("Channel not found.")
+        metadata = {"command": text,"channel":self.CHANNEL_ID}
+        resp = await self.api_call("chat.command", json=metadata)
 
     async def get_reply(self):
         for _ in range(150):
@@ -52,7 +63,7 @@ class SlackClient(AsyncWebClient):
                     last_msg = msg[-1]
                     more = False
                     if msg[-1].endswith("Typing…_"):
-                        last_msg = str(msg[-1])[:-11] # remove typing…
+                        last_msg = str(msg[-1])[:-11]  # remove typing…
                         more = True
                     diff = last_msg[l:]
                     l = len(last_msg)
@@ -64,7 +75,8 @@ class SlackClient(AsyncWebClient):
 
             await asyncio.sleep(2)
 
-client = SlackClient(token=getenv("SLACK_USER_TOKEN"))
+
+client = SlackClient(token=getenv("SLACK_USER_TOKEN"), ssl=ssl_context)
 
 if __name__ == '__main__':
     async def server():
@@ -75,5 +87,6 @@ if __name__ == '__main__':
 
             reply = await client.get_reply()
             print(f"Claude: {reply}\n--------------------")
+
 
     asyncio.run(server())
