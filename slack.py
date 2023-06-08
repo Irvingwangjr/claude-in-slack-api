@@ -1,4 +1,5 @@
 import asyncio
+from datetime import time
 from os import getenv
 
 from dotenv import load_dotenv
@@ -12,6 +13,7 @@ ssl_context = ssl.create_default_context(cafile=certifi.where())
 
 load_dotenv()
 CLAUDE_BOT_ID = getenv("CLAUDE_BOT_ID")
+CLAUDE_WEB_TOKEN = getenv("SLACK_WEB_TOKEN")
 
 
 class SlackClient(AsyncWebClient):
@@ -35,8 +37,16 @@ class SlackClient(AsyncWebClient):
     async def command(self, text):
         if not self.CHANNEL_ID:
             raise Exception("Channel not found.")
-        metadata = {"command": text,"channel":self.CHANNEL_ID}
-        resp = await self.api_call("chat.command", json=metadata)
+        data = {
+            "token": CLAUDE_WEB_TOKEN,
+            "command": text,
+            "disp": text,
+            "channel": self.CHANNEL_ID,
+            "_x_reason": "executeCommand",
+            "_x_mode": "online",
+            "_x_sonic": "true",
+        }
+        resp = await self.api_call("chat.command", data=data)
 
     async def get_reply(self):
         for _ in range(150):

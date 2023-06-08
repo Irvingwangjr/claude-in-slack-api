@@ -27,7 +27,14 @@ curl -X 'POST' \
 ```
 
 ## 清除上下文
+```markdown
+不要用下面那个，参考这个
+from what i know, if you're using slack_sdk to gain access to claude app, there's a need to add scopes to your app and copy user token which starts with xoxp-.
+but with the web API which we use by accessing Slack in the browser or slack app, there's no need to add scopes since it's just like using slack to chat with claude in the browser.
+slack would give you a d cookie starting with xoxd- which identifies you, and a api-token starting with xoxc- with gives access to apps in slack, these things are managed automatically by slack once you login through your email.
 
+
+```
 ```curl
 curl -X 'POST' \
   'http://127.0.0.1:8088/claude/reset' \

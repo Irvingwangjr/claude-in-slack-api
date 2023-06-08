@@ -33,6 +33,7 @@ async def chat(body: ClaudeChatPrompt):
 
     return await client.get_reply()
 
+
 # add --no-buffer to see the effect of streaming
 # curl -X 'POST'  --no-buffer \
 #  'http://127.0.0.1:8088/claude/stream_chat' \
@@ -49,11 +50,12 @@ async def chat(body: ClaudeChatPrompt):
 
     return StreamingResponse(sr, media_type="text/plain")
 
+
 @app.post("/claude/reset", dependencies=[Depends(must_token)])
 async def chat():
     await client.open_channel()
     await client.chat("忘记上述对话")
-
+    # await client.command("/reset")
     return json.dumps({
         "claude": await client.get_reply()
     })
